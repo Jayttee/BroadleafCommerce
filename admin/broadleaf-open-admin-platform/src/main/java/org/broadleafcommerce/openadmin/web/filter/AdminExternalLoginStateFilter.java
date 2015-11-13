@@ -100,12 +100,12 @@ public class AdminExternalLoginStateFilter extends GenericFilterBean {
     protected void saveAdminUser(BroadleafExternalAuthenticationUserDetails broadleafUser, AdminUser user) {
         //Name, login, password, email are required.
         user.setLogin(broadleafUser.getUsername());
-        user.setUnencodedPassword(broadleafUser.getPassword());
+        user.setUnencodedPassword(broadleafUser.getPassword().toCharArray());
 
         if (user.getUnencodedPassword() == null) {
             //If Spring is configured to erase credentials, then this will always be null
             //Set the username as a default password here.
-            user.setUnencodedPassword(user.getLogin());
+            user.setUnencodedPassword(user.getLogin().toCharArray());
         }
 
         StringBuffer name = new StringBuffer();

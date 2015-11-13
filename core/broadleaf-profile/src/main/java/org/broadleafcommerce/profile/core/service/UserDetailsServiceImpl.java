@@ -59,7 +59,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         List<GrantedAuthority> grantedAuthorities = createGrantedAuthorities(roleService.findCustomerRolesByCustomerId(customer.getId()));
-        return new CustomerUserDetails(customer.getId(), username, customer.getPassword(), !customer.isDeactivated(), true, !customer.isPasswordChangeRequired(), true, grantedAuthorities);
+        return new CustomerUserDetails(customer.getId(), username, customer.getPassword().toCharArray(), !customer.isDeactivated(), true, !customer.isPasswordChangeRequired(), true, grantedAuthorities);
     }
 
     protected List<GrantedAuthority> createGrantedAuthorities(List<CustomerRole> customerRoles) {

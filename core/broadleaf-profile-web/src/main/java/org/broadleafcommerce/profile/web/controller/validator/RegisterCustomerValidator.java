@@ -36,7 +36,13 @@ import javax.annotation.Resource;
 @Component("blRegisterCustomerValidator")
 public class RegisterCustomerValidator implements Validator {
 
-    private String validatePasswordExpression = "[0-9A-Za-z]{4,15}";
+    public static final Integer DEFAULT_MAX_PASSWORD_LENGTH = 15;
+    public static final Integer DEFAULT_MIN_PASSWORD_LENGTH = 4;
+
+    private Integer maxPasswordLength = DEFAULT_MAX_PASSWORD_LENGTH;
+    private Integer minPasswordLength = DEFAULT_MIN_PASSWORD_LENGTH;
+
+    private String validatePasswordExpression = "[0-9A-Za-z]";
 
     @Resource(name="blCustomerService")
     private CustomerService customerService;
@@ -110,7 +116,7 @@ public class RegisterCustomerValidator implements Validator {
 
         if (!errors.hasErrors()) {
 
-            if (!form.getPassword().matches(getValidatePasswordExpression())) {
+            if (!isPasswordValid(form.getPassword())) {
                 errors.rejectValue("password", "password.invalid", null, null);
             }
 
@@ -122,6 +128,41 @@ public class RegisterCustomerValidator implements Validator {
                 errors.rejectValue("customer.emailAddress", "emailAddress.invalid", null, null);
             }
         }
+    }
+
+    private boolean isPasswordValid(char[] password){
+        if(getMinPasswordLength() !=null && password.length < getMinPasswordLength() ){
+            return false;
+        }
+        if(getMaxPasswordLength() != null && password.length > getMaxPasswordLength()){
+            return false;
+        }
+
+        for (char c: password) {
+            String temp = String.valueOf(c);
+            if(!temp.matches(getValidatePasswordExpression())){
+
+                return false;
+            }
+            temp = null;
+        }
+        return true;
+    }
+
+    public void setMaxPasswordLength(Integer maxLength){
+        this.maxPasswordLength = maxLength;
+    }
+
+    public Integer getMaxPasswordLength(){
+        return this.maxPasswordLength;
+    }
+
+    public void setMinPasswordLength(Integer minPasswordLength){
+        this.minPasswordLength = minPasswordLength;
+    }
+
+    public Integer getMinPasswordLength(){
+        return this.minPasswordLength;
     }
 
     public String getValidatePasswordExpression() {

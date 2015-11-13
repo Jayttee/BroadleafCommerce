@@ -35,7 +35,7 @@ public interface CustomerService {
 
     public Customer saveCustomer(Customer customer, boolean register);
 
-    public Customer registerCustomer(Customer customer, String password, String passwordConfirm);
+    public Customer registerCustomer(Customer customer, char[] password, char[] passwordConfirm);
 
     public Customer readCustomerByUsername(String customerName);
 
@@ -118,7 +118,7 @@ public interface CustomerService {
      *
      * @return Response can contain errors including (invalidUsername, inactiveUser, invalidToken, invalidPassword, tokenExpired)
      */
-    GenericResponse resetPasswordUsingToken(String username, String token, String password, String confirmPassword);
+    GenericResponse resetPasswordUsingToken(String username, char[] token, char[] password, char[] confirmPassword);
     
     /**
      * Verifies that the passed in token is valid.
@@ -132,7 +132,7 @@ public interface CustomerService {
      * @return Response can contain errors including (invalidToken, tokenUsed, and tokenExpired)
      */
     @Deprecated
-    public GenericResponse checkPasswordResetToken(String token);
+    public GenericResponse checkPasswordResetToken(char[] token);
 
     /**
      * Verifies that a customer has a valid token.
@@ -141,7 +141,7 @@ public interface CustomerService {
      * @param customer {@link Customer} who owns the token
      * @return Response can contain errors including (invalidToken, tokenUsed, and tokenExpired)
      */
-    public GenericResponse checkPasswordResetToken(String token, Customer customer);
+    public GenericResponse checkPasswordResetToken(char[] token, Customer customer);
 
     /**
      * Allow customers to call from subclassed service.
@@ -205,7 +205,7 @@ public interface CustomerService {
      * @return the salt for the current customer
      */
     @Deprecated
-    public Object getSalt(Customer customer, String unencodedPassword);
+    public Object getSalt(Customer customer, char[] unencodedPassword);
     
     /**
      * Encodes the clear text parameter, using the customer as a potential Salt. Does not change the customer properties. 
@@ -224,7 +224,7 @@ public interface CustomerService {
      * @return the encoded password
      */
     @Deprecated
-    public String encodePassword(String rawPassword, Customer customer);
+    public String encodePassword(char[] rawPassword, Customer customer);
 
     /**
      * Encodes the clear text parameter, using the salt provided by PasswordEncoder. Does not change the customer properties.
@@ -238,7 +238,7 @@ public interface CustomerService {
      * @param rawPassword the unencoded password
      * @return the encoded password
      */
-    public String encodePassword(String rawPassword);
+    public String encodePassword(char[] rawPassword);
 
     /**
      * Use this to determine if passwords match using a {@link Customer} for salting. Don't encode the password separately since sometimes salts
@@ -258,7 +258,7 @@ public interface CustomerService {
      * @return true if the unencoded password matches the encoded password, false otherwise
      */
     @Deprecated
-    public boolean isPasswordValid(String rawPassword, String encodedPassword, Customer customer);
+    public boolean isPasswordValid(char[] rawPassword, String encodedPassword, Customer customer);
 
     /**
      * Determines if a password is valid by comparing it to the encoded string, salting is handled internally to the {@link org.springframework.security.crypto.password.PasswordEncoder PasswordEncoder}.
@@ -270,6 +270,6 @@ public interface CustomerService {
      * @param encodedPassword the encoded password to compare against
      * @return true if the unencoded password matches the encoded password, false otherwise
      */
-    public boolean isPasswordValid(String rawPassword, String encodedPassword);
+    public boolean isPasswordValid(char[] rawPassword, String encodedPassword);
 
 }

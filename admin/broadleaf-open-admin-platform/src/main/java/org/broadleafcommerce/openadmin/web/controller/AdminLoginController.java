@@ -158,7 +158,7 @@ public class AdminLoginController extends BroadleafAbstractController {
     public ResetPasswordForm initResetPasswordForm(HttpServletRequest request) {
         ResetPasswordForm resetPasswordForm = new ResetPasswordForm();
         String username = (String) request.getSession(true).getAttribute("forgot_password_username");
-        String token = request.getParameter("token");
+        char[] token = request.getParameter("token").toCharArray();
         resetPasswordForm.setToken(token);
         resetPasswordForm.setUsername(username);
         return resetPasswordForm;

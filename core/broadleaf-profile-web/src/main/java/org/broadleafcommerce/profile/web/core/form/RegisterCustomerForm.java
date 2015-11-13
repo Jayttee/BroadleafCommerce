@@ -27,8 +27,8 @@ public class RegisterCustomerForm implements Serializable {
     protected static final long serialVersionUID = 1L;
 
     protected Customer customer;
-    protected String password;
-    protected String passwordConfirm;
+    protected char[] password;
+    protected char[] passwordConfirm;
     protected String redirectUrl;
 
     public Customer getCustomer() {
@@ -39,19 +39,19 @@ public class RegisterCustomerForm implements Serializable {
         this.customer = customer;
     }
     
-    public String getPassword() {
+    public char[] getPassword() {
         return password;
     }
     
-    public void setPassword(String password) {
+    public void setPassword(char[] password) {
         this.password = password;
     }
     
-    public String getPasswordConfirm() {
+    public char[] getPasswordConfirm() {
         return passwordConfirm;
     }
     
-    public void setPasswordConfirm(String passwordConfirm) {
+    public void setPasswordConfirm(char[] passwordConfirm) {
         this.passwordConfirm = passwordConfirm;
     }
     

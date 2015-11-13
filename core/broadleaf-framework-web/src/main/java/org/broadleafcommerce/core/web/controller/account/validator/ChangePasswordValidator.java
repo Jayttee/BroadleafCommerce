@@ -28,22 +28,27 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 
 @Component("blChangePasswordValidator")
 public class ChangePasswordValidator implements Validator {
 
-    public static final String DEFAULT_VALID_PASSWORD_REGEX = "[0-9A-Za-z]{4,15}";
+    public static final String DEFAULT_VALID_PASSWORD_REGEX = "[0-9A-Za-z]";
+    public static final Integer DEFAULT_MAX_PASSWORD_LENGTH = 15;
+    public static final Integer DEFAULT_MIN_PASSWORD_LENGTH = 4;
 
     private String validPasswordRegex = DEFAULT_VALID_PASSWORD_REGEX;
+    private Integer maxPasswordLength = DEFAULT_MAX_PASSWORD_LENGTH;
+    private Integer minPasswordLength = DEFAULT_MIN_PASSWORD_LENGTH;
 
     @Resource(name = "blCustomerService")
     protected CustomerService customerService;
 
     public void validate(PasswordChange passwordChange, Errors errors) {
 
-        String currentPassword = passwordChange.getCurrentPassword();
-        String password = passwordChange.getNewPassword();
-        String passwordConfirm = passwordChange.getNewPasswordConfirm();
+        char[] currentPassword = passwordChange.getCurrentPassword();
+        char[] password = passwordChange.getNewPassword();
+        char[] passwordConfirm = passwordChange.getNewPasswordConfirm();
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "currentPassword", "currentPassword.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "newPassword", "newPassword.required");
@@ -55,14 +60,18 @@ public class ChangePasswordValidator implements Validator {
                 errors.rejectValue("currentPassword", "currentPassword.invalid");
             }
             //password and confirm password fields must be equal
-            if (!passwordConfirm.equals(password)) {
+            if(!Arrays.equals(passwordConfirm,password)){
                 errors.rejectValue("newPasswordConfirm", "newPasswordConfirm.invalid");
             }
             //restrict password characteristics
-            if (!password.matches(getValidPasswordRegex())) {
+            if (!isPasswordValid(password)) {
                 errors.rejectValue("newPassword", "newPassword.invalid");
             }
         }
+
+        Arrays.fill(currentPassword,'\0');
+        Arrays.fill(password,'\0');
+        Arrays.fill(passwordConfirm,'\0');
 
     }
 
@@ -70,8 +79,35 @@ public class ChangePasswordValidator implements Validator {
         return validPasswordRegex;
     }
 
+    private boolean isPasswordValid(char[] password){
+        if(minPasswordLength !=null && password.length < minPasswordLength ){
+            return false;
+        }
+        if(maxPasswordLength != null && password.length > maxPasswordLength){
+            return false;
+        }
+
+        for (char c: password) {
+            String temp = String.valueOf(c);
+            if(!temp.matches(validPasswordRegex)){
+
+                return false;
+            }
+            temp = null;
+        }
+        return true;
+    }
+
     public void setValidPasswordRegex(String validPasswordRegex) {
         this.validPasswordRegex = validPasswordRegex;
+    }
+
+    public void setMaxPasswordLength(Integer maxLength){
+        this.maxPasswordLength = maxLength;
+    }
+
+    public void setMinPasswordLength(Integer minPasswordLength){
+        this.minPasswordLength = minPasswordLength;
     }
 
     @Override

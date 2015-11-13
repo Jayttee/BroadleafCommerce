@@ -55,7 +55,7 @@ public class LoginServiceImpl implements LoginService {
     }
     
     @Override
-    public Authentication loginCustomer(String username, String clearTextPassword) {
+    public Authentication loginCustomer(String username, char[] clearTextPassword) {
         UserDetails principal = userDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, clearTextPassword, principal.getAuthorities());
         Authentication authentication = authenticationManager.authenticate(token);

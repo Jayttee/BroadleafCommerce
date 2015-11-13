@@ -50,7 +50,7 @@ public class EmailNotificationPasswordUpdatedHandler implements PasswordUpdatedH
     
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void passwordChanged(PasswordReset passwordReset, Customer customer, String newPassword) {
+    public void passwordChanged(PasswordReset passwordReset, Customer customer, char[] newPassword) {
         Locale localeToUse = null;
         org.broadleafcommerce.common.locale.domain.Locale blLocale = customer.getCustomerLocale();
         if (blLocale != null) {
@@ -90,9 +90,9 @@ public class EmailNotificationPasswordUpdatedHandler implements PasswordUpdatedH
     /**
      * Override this method to add in whatever variables your custom template may require.
      */
-    protected HashMap constructPasswordChangeEmailTemplateVariables(Customer customer, String newPassword) {
+    protected HashMap constructPasswordChangeEmailTemplateVariables(Customer customer, char[] newPassword) {
         HashMap<String, String> vars = new HashMap<String, String>();
-        vars.put(CUSTOMER_PASSWORD_TEMPLATE_VARIABLE, newPassword);
+        vars.put(CUSTOMER_PASSWORD_TEMPLATE_VARIABLE, String.valueOf(newPassword));
         
         return vars;
     }

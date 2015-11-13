@@ -28,9 +28,14 @@ import org.springframework.validation.Validator;
 public class ResetPasswordValidator implements Validator {
     
     private String validPasswordRegex = RegistrationValidator.DEFAULT_VALID_PASSWORD_REGEX;
+    public static final Integer DEFAULT_MAX_PASSWORD_LENGTH = 15;
+    public static final Integer DEFAULT_MIN_PASSWORD_LENGTH = 4;
 
-    public void validate(String username, String password, String confirmPassword, Errors errors) {
-        if (StringUtils.isEmpty(password)) {
+    private Integer maxPasswordLength = DEFAULT_MAX_PASSWORD_LENGTH;
+    private Integer minPasswordLength = DEFAULT_MIN_PASSWORD_LENGTH;
+
+    public void validate(String username, char[] password, char[] confirmPassword, Errors errors) {
+        if (password.length <= 0) {
             errors.reject("password", "password.required");
         }
         
@@ -39,7 +44,7 @@ public class ResetPasswordValidator implements Validator {
         }
         
         if (! errors.hasErrors()) {
-            if (! password.matches(validPasswordRegex)) {
+            if (!isPasswordValid(password)) {
                 errors.rejectValue("password", "password.invalid", null, null);
             } else {
                 if (!password.equals(confirmPassword)) {
@@ -47,6 +52,41 @@ public class ResetPasswordValidator implements Validator {
                 }
             }        
         }
+    }
+
+    private boolean isPasswordValid(char[] password){
+        if(getMinPasswordLength() !=null && password.length < getMinPasswordLength() ){
+            return false;
+        }
+        if(getMaxPasswordLength() != null && password.length > getMaxPasswordLength()){
+            return false;
+        }
+
+        for (char c: password) {
+            String temp = String.valueOf(c);
+            if(!temp.matches(getValidPasswordRegex())){
+
+                return false;
+            }
+            temp = null;
+        }
+        return true;
+    }
+
+    public void setMaxPasswordLength(Integer maxLength){
+        this.maxPasswordLength = maxLength;
+    }
+
+    public Integer getMaxPasswordLength(){
+        return this.maxPasswordLength;
+    }
+
+    public void setMinPasswordLength(Integer minPasswordLength){
+        this.minPasswordLength = minPasswordLength;
+    }
+
+    public Integer getMinPasswordLength(){
+        return this.minPasswordLength;
     }
 
     @Override

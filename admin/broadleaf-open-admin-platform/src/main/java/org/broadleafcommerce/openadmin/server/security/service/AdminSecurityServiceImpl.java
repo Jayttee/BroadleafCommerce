@@ -54,6 +54,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -213,11 +214,11 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
     @Transactional("blTransactionManager")
     public AdminUser saveAdminUser(AdminUser user) {
         boolean encodePasswordNeeded = false;
-        String unencodedPassword = user.getUnencodedPassword();
+        char[] unencodedPassword = user.getUnencodedPassword();
 
         if (user.getUnencodedPassword() != null) {
             encodePasswordNeeded = true;
-            user.setPassword(unencodedPassword);
+            user.setPassword(String.valueOf(unencodedPassword));
         }
 
         // If no password is set, default to a secure password.
@@ -335,8 +336,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
         checkUser(user,response);
         
         if (! response.getHasErrors()) {        
-            String token = PasswordUtils.generateTemporaryPassword(PASSWORD_TOKEN_LENGTH);
-            token = token.toLowerCase();
+            char[] token = PasswordUtils.generateTemporaryPassword(PASSWORD_TOKEN_LENGTH);
 
             ForgotPasswordSecurityToken fpst = new ForgotPasswordSecurityTokenImpl();
             fpst.setAdminUserId(user.getId());
@@ -349,9 +349,9 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
             String resetPasswordUrl = getResetPasswordURL();
             if (!StringUtils.isEmpty(resetPasswordUrl)) {
                 if (resetPasswordUrl.contains("?")) {
-                    resetPasswordUrl=resetPasswordUrl+"&token="+token;
+                    resetPasswordUrl=resetPasswordUrl+"&token="+String.valueOf(token);
                 } else {
-                    resetPasswordUrl=resetPasswordUrl+"?token="+token;
+                    resetPasswordUrl=resetPasswordUrl+"?token="+String.valueOf(token);
                 }
             }
             vars.put("resetPasswordUrl", resetPasswordUrl);
@@ -363,7 +363,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
 
     @Override
     @Transactional("blTransactionManager")
-    public GenericResponse resetPasswordUsingToken(String username, String token, String password, String confirmPassword) {
+    public GenericResponse resetPasswordUsingToken(String username, char[] token, char[] password, char[] confirmPassword) {
         GenericResponse response = new GenericResponse();
         AdminUser user = null;
         if (username != null) {
@@ -371,16 +371,15 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
         }
         checkUser(user, response);
         checkPassword(password, confirmPassword, response);
-        if (StringUtils.isBlank(token)) {
+        if (token.length > 0) {
             response.addErrorCode("invalidToken");
         }
 
         ForgotPasswordSecurityToken fpst = null;
         if (! response.getHasErrors()) {
-            token = token.toLowerCase();
             List<ForgotPasswordSecurityToken> fpstoks = forgotPasswordSecurityTokenDao.readUnusedTokensByAdminUserId(user.getId());
             for (ForgotPasswordSecurityToken fpstok : fpstoks) {
-                if (isPasswordValid(fpstok.getToken(), token, null)) {
+                if (isPasswordValid(fpstok.getToken().toCharArray(), token, null)) {
                     fpst = fpstok;
                     break;
                 }
@@ -430,16 +429,16 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
         }
     }
     
-    protected void checkPassword(String password, String confirmPassword, GenericResponse response) {
-        if (StringUtils.isBlank(password) || StringUtils.isBlank(confirmPassword)) {
+    protected void checkPassword(char[] password, char[] confirmPassword, GenericResponse response) {
+        if (password.length > 0 || confirmPassword.length > 0) {
             response.addErrorCode("invalidPassword");
         } else if (! password.equals(confirmPassword)) {
             response.addErrorCode("passwordMismatch");
         }
     }
 
-    protected void checkExistingPassword(String unencodedPassword, AdminUser user, GenericResponse response) {
-        if (!isPasswordValid(user.getPassword(), unencodedPassword, getSalt(user, unencodedPassword))) {
+    protected void checkExistingPassword(char[] unencodedPassword, AdminUser user, GenericResponse response) {
+        if (!isPasswordValid(user.getPassword().toCharArray(), unencodedPassword, getSalt(user, unencodedPassword))) {
             response.addErrorCode("invalidPassword");
         }
     }
@@ -478,10 +477,10 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
 
     @Deprecated
     @Override
-    public Object getSalt(AdminUser user, String unencodedPassword) {
+    public Object getSalt(AdminUser user, char[] unencodedPassword) {
         Object salt = null;
         if (saltSource != null) {
-            salt = saltSource.getSalt(new AdminUserDetails(user.getId(), user.getLogin(), unencodedPassword, new ArrayList<GrantedAuthority>()));
+            salt = saltSource.getSalt(new AdminUserDetails(user.getId(), user.getLogin(), String.valueOf(unencodedPassword), new ArrayList<GrantedAuthority>()));
         }
         return salt;
     }
@@ -513,7 +512,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
     @Override
     @Transactional("blTransactionManager")
     public GenericResponse changePassword(String username,
-            String oldPassword, String password, String confirmPassword) {
+            char[] oldPassword, char[] password, char[] confirmPassword) {
         GenericResponse response = new GenericResponse();
         AdminUser user = null;
         if (username != null) {
@@ -553,9 +552,9 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      * @return true if rawPassword matches the encodedPassword, false otherwise
      */
     @Deprecated
-    protected boolean isPasswordValid(String encodedPassword, String rawPassword, Object salt) {
+    protected boolean isPasswordValid(char[] encodedPassword, char[] rawPassword, Object salt) {
         if (usingDeprecatedPasswordEncoder()) {
-            return passwordEncoder.isPasswordValid(encodedPassword, rawPassword, salt);
+            return passwordEncoder.isPasswordValid(String.valueOf(encodedPassword), String.valueOf(rawPassword), salt);
         } else {
             return isPasswordValid(encodedPassword, rawPassword);
         }
@@ -571,8 +570,8 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      * @param rawPassword the raw password to check against the encoded password
      * @return true if rawPassword matches the encodedPassword, false otherwise
      */
-    protected boolean isPasswordValid(String encodedPassword, String rawPassword) {
-        return passwordEncoderNew.matches(rawPassword, encodedPassword);
+    protected boolean isPasswordValid(char[] encodedPassword, char[] rawPassword) {
+        return passwordEncoderNew.matches(CharBuffer.wrap(rawPassword), String.valueOf(encodedPassword));
     }
 
     /**
@@ -591,9 +590,9 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      * @return
      */
     @Deprecated
-    protected String encodePassword(String rawPassword, Object salt) {
+    protected String encodePassword(char[] rawPassword, Object salt) {
         if (usingDeprecatedPasswordEncoder()) {
-            return passwordEncoder.encodePassword(rawPassword, salt);
+            return passwordEncoder.encodePassword(String.valueOf(rawPassword), salt);
         } else {
             return encodePassword(rawPassword);
         }
@@ -610,8 +609,8 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      * @param rawPassword the unencoded password to encode
      * @return the encoded password
      */
-    protected String encodePassword(String rawPassword) {
-        return passwordEncoderNew.encode(rawPassword);
+    protected String encodePassword(char[] rawPassword) {
+        return passwordEncoderNew.encode(CharBuffer.wrap(rawPassword));
     }
 
     @Deprecated

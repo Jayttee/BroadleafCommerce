@@ -42,8 +42,8 @@ public interface AdminUser extends AdminSecurityContext {
     public void setEmail(String email);
     public Set<AdminRole> getAllRoles();
     public void setAllRoles(Set<AdminRole> allRoles);
-    public String getUnencodedPassword();
-    public void setUnencodedPassword(String unencodedPassword);
+    public char[] getUnencodedPassword();
+    public void setUnencodedPassword(char[] unencodedPassword);
 
     /**
      * Stores the user's phone number.

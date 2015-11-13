@@ -87,7 +87,7 @@ public interface AdminSecurityService {
      * @param confirmPassword the password confirmation to match password
      * @return Response can contain errors including (invalidUsername, inactiveUser, invalidToken, invalidPassword, tokenExpired, passwordMismatch)
      */
-    GenericResponse resetPasswordUsingToken(String username, String token, String password, String confirmPassword);
+    GenericResponse resetPasswordUsingToken(String username, char[] token, char[] password, char[] confirmPassword);
 
     /**
      * Change a user's password only if oldPassword matches what's stored for that user
@@ -98,7 +98,7 @@ public interface AdminSecurityService {
      * @param confirmPassword the confirm password to ensure it matches password
      * @return Response can contain errors including (invalidUser, emailNotFound, inactiveUser, invalidPassword, passwordMismatch)
      */
-    GenericResponse changePassword(String username, String oldPassword, String password, String confirmPassword);
+    GenericResponse changePassword(String username, char[] oldPassword, char[] password, char[] confirmPassword);
     
     /**
      * @deprecated use {@link #getSaltSource()} instead, this will be removed in 4.2
@@ -149,7 +149,7 @@ public interface AdminSecurityService {
      * @return the salt for the current admin user
      */
     @Deprecated
-    public Object getSalt(AdminUser user, String unencodedPassword);
+    public Object getSalt(AdminUser user, char[] unencodedPassword);
 
     /**
      * Returns a list of admin users that match the given email. This could potentially return more than one user if the

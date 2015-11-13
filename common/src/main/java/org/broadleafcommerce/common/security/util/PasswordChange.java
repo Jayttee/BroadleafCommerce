@@ -29,11 +29,11 @@ public class PasswordChange extends PasswordReset {
 
     private static final long serialVersionUID = 1L;
 
-    private String currentPassword;
+    private char[] currentPassword;
 
-    private String newPassword;
+    private char[] newPassword;
 
-    private String newPasswordConfirm;
+    private char[] newPasswordConfirm;
 
     private String challengeQuestion;
 
@@ -59,27 +59,27 @@ public class PasswordChange extends PasswordReset {
         this.challengeAnswer = challengeAnswer;
     }
 
-    public String getCurrentPassword() {
+    public char[] getCurrentPassword() {
         return currentPassword;
     }
 
-    public void setCurrentPassword(String currentPassword) {
+    public void setCurrentPassword(char[] currentPassword) {
         this.currentPassword = currentPassword;
     }
 
-    public String getNewPassword() {
+    public char[] getNewPassword() {
         return newPassword;
     }
 
-    public void setNewPassword(String newPassword) {
+    public void setNewPassword(char[] newPassword) {
         this.newPassword = newPassword;
     }
 
-    public String getNewPasswordConfirm() {
+    public char[] getNewPasswordConfirm() {
         return newPasswordConfirm;
     }
 
-    public void setNewPasswordConfirm(String newPasswordConfirm) {
+    public void setNewPasswordConfirm(char[] newPasswordConfirm) {
         this.newPasswordConfirm = newPasswordConfirm;
     }
 

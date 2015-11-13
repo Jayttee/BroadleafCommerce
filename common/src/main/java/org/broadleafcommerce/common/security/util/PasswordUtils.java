@@ -27,13 +27,13 @@ public class PasswordUtils {
         '2','3','4','6','7','8','9'
     };
     
-    public static String generateTemporaryPassword(int requiredLength) {
+    public static char[] generateTemporaryPassword(int requiredLength) {
         int length = characters.length;
-        StringBuffer sb = new StringBuffer(requiredLength);
+        char[] tempPassword = new char[length];
         for (int j=0;j<requiredLength;j++) {
-            sb.append(characters[(int) Math.round(Math.floor(Math.random() * length))]);
+            tempPassword[j] = characters[(int) Math.round(Math.floor(Math.random() * length))];
         }
         
-        return sb.toString();
+        return tempPassword;
     }
 }

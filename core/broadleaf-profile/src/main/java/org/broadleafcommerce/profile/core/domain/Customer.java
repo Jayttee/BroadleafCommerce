@@ -65,9 +65,9 @@ public interface Customer extends Serializable, MultiTenantCloneable<Customer> {
 
     public void setChallengeAnswer(String challengeAnswer);
 
-    public String getUnencodedPassword();
+    public char[] getUnencodedPassword();
 
-    public void setUnencodedPassword(String unencodedPassword);
+    public void setUnencodedPassword(char[] unencodedPassword);
 
     public boolean isReceiveEmail();
 

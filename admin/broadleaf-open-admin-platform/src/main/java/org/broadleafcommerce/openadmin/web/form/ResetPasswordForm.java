@@ -28,10 +28,10 @@ public class ResetPasswordForm implements Serializable {
     private static final long serialVersionUID = 1L;
     
     private String username;
-    private String token;
-    private String oldPassword;
-    private String password;
-    private String confirmPassword;
+    private char[] token;
+    private char[] oldPassword;
+    private char[] password;
+    private char[] confirmPassword;
 
     public String getUsername() {
         return username;
@@ -41,35 +41,35 @@ public class ResetPasswordForm implements Serializable {
         this.username = username;
     }
 
-    public String getToken() {
+    public char[] getToken() {
         return token;
     }
 
-    public void setToken(String token) {
+    public void setToken(char[] token) {
         this.token = token;
     }
 
-    public String getPassword() {
+    public char[] getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(char[] password) {
         this.password = password;
     }
 
-    public String getConfirmPassword() {
+    public char[] getConfirmPassword() {
         return confirmPassword;
     }
 
-    public void setConfirmPassword(String confirmPassword) {
+    public void setConfirmPassword(char[] confirmPassword) {
         this.confirmPassword = confirmPassword;
     }
 
-    public String getOldPassword() {
+    public char[] getOldPassword() {
         return oldPassword;
     }
 
-    public void setOldPassword(String oldPassword) {
+    public void setOldPassword(char[] oldPassword) {
         this.oldPassword = oldPassword;
     }
 }

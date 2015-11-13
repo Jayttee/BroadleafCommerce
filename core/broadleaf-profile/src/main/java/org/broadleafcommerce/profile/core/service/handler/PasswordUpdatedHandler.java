@@ -24,6 +24,6 @@ import org.broadleafcommerce.profile.core.domain.Customer;
 
 public interface PasswordUpdatedHandler {
 
-    public void passwordChanged(PasswordReset passwordReset, Customer customer, String newPassword);
+    public void passwordChanged(PasswordReset passwordReset, Customer customer, char[] newPassword);
 
 }

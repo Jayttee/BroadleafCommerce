@@ -183,7 +183,7 @@ public class CustomerImpl implements Customer, AdminMainEntity, Previewable {
     protected String taxExemptionCode;
 
     @Transient
-    protected String unencodedPassword;
+    protected char[] unencodedPassword;
 
     @Transient
     protected String unencodedChallengeAnswer;
@@ -291,12 +291,12 @@ public class CustomerImpl implements Customer, AdminMainEntity, Previewable {
     }
 
     @Override
-    public String getUnencodedPassword() {
+    public char[] getUnencodedPassword() {
         return unencodedPassword;
     }
 
     @Override
-    public void setUnencodedPassword(String unencodedPassword) {
+    public void setUnencodedPassword(char[] unencodedPassword) {
         this.unencodedPassword = unencodedPassword;
     }
 

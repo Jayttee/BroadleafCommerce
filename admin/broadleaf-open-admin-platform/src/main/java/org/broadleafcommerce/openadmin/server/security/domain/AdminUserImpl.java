@@ -164,10 +164,10 @@ public class AdminUserImpl implements AdminUser, AdminMainEntity {
     protected Set<AdminPermission> allPermissions = new HashSet<AdminPermission>();
 
     @Transient
-    protected String unencodedPassword;
+    protected char[] unencodedPassword;
     
     @Override
-    public String getUnencodedPassword() {
+    public char[] getUnencodedPassword() {
         return unencodedPassword;
     }
 
@@ -184,7 +184,7 @@ public class AdminUserImpl implements AdminUser, AdminMainEntity {
     protected Map<String, AdminUserAttribute> additionalFields = new HashMap<String, AdminUserAttribute>();
 
     @Override
-    public void setUnencodedPassword(String unencodedPassword) {
+    public void setUnencodedPassword(char[] unencodedPassword) {
         this.unencodedPassword = unencodedPassword;
     }
 

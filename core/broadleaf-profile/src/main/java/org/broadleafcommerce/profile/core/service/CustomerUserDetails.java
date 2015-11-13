@@ -38,12 +38,12 @@ public class CustomerUserDetails extends User {
     
     protected Long id;
     
-    public CustomerUserDetails(Long id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public CustomerUserDetails(Long id, String username, char[] password, Collection<? extends GrantedAuthority> authorities) {
         this(id, username, password, true, true, true, true, authorities);
     }
     
-    public CustomerUserDetails(Long id, String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
+    public CustomerUserDetails(Long id, String username, char[] password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
+        super(username, String.valueOf(password), enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.id = id;
     }
     

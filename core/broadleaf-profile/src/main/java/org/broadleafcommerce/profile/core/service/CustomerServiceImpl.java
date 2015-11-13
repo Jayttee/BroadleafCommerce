@@ -21,6 +21,7 @@ package org.broadleafcommerce.profile.core.service;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -53,11 +54,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.nio.CharBuffer;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -183,7 +181,7 @@ public class CustomerServiceImpl implements CustomerService {
         // the password field with hashed values so check that they have changed
         // id
         if (customer.getUnencodedChallengeAnswer() != null && !customer.getUnencodedChallengeAnswer().equals(customer.getChallengeAnswer())) {
-            customer.setChallengeAnswer(encodePassword(customer.getUnencodedChallengeAnswer(), customer));
+            customer.setChallengeAnswer(encodePassword(customer.getUnencodedChallengeAnswer().toCharArray(), customer));
         }
         return customerDao.save(customer);
     }
@@ -194,7 +192,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(TransactionUtils.DEFAULT_TRANSACTION_MANAGER)
-    public Customer registerCustomer(Customer customer, String password, String passwordConfirm) {
+    public Customer registerCustomer(Customer customer, char[] password, char[] passwordConfirm) {
         customer.setRegistered(true);
 
         // When unencodedPassword is set the save() will encode it
@@ -246,7 +244,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional(TransactionUtils.DEFAULT_TRANSACTION_MANAGER)
     public Customer resetPassword(PasswordReset passwordReset) {
         Customer customer = readCustomerByUsername(passwordReset.getUsername());
-        String newPassword = PasswordUtils.generateTemporaryPassword(passwordReset.getPasswordLength());
+        char[] newPassword = PasswordUtils.generateTemporaryPassword(passwordReset.getPasswordLength());
         customer.setUnencodedPassword(newPassword);
         customer.setPasswordChangeRequired(passwordReset.getPasswordChangeRequired());
         customer = saveCustomer(customer);
@@ -346,12 +344,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Deprecated
     @Override
     public Object getSalt(Customer customer) {
-        return getSalt(customer, "");
+        char[] empty = {'\0'};
+        return getSalt(customer, empty);
     }
     
     @Deprecated
     @Override
-    public Object getSalt(Customer customer, String unencodedPassword) {
+    public Object getSalt(Customer customer, char[] unencodedPassword) {
         Object salt = null;
         if (saltSource != null && customer != null) {
             salt = saltSource.getSalt(new CustomerUserDetails(customer.getId(), customer.getUsername(), unencodedPassword, new ArrayList<GrantedAuthority>()));
@@ -369,9 +368,9 @@ public class CustomerServiceImpl implements CustomerService {
      * @return
      */
     @Deprecated
-    protected String encodePass(String rawPassword, Object salt) {
+    protected String encodePass(char[] rawPassword, Object salt) {
         if (usingDeprecatedPasswordEncoder()) {
-            return passwordEncoder.encodePassword(rawPassword, salt);
+            return passwordEncoder.encodePassword(String.valueOf(rawPassword), salt);
         } else {
             return encodePassword(rawPassword);
         }
@@ -379,13 +378,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Deprecated
     @Override
-    public String encodePassword(String rawPassword, Customer customer) {
+    public String encodePassword(char[] rawPassword, Customer customer) {
         return encodePass(rawPassword, getSalt(customer, rawPassword));
     }
 
     @Override
-    public String encodePassword(String rawPassword) {
-        return passwordEncoderNew.encode(rawPassword);
+    public String encodePassword(char[] rawPassword) {
+        return passwordEncoderNew.encode(CharBuffer.wrap(rawPassword));
     }
 
     /**
@@ -399,9 +398,9 @@ public class CustomerServiceImpl implements CustomerService {
      * @return
      */
     @Deprecated
-    protected boolean isPassValid(String rawPassword, String encodedPassword, Object salt) {
+    protected boolean isPassValid(char[] rawPassword, String encodedPassword, Object salt) {
         if (usingDeprecatedPasswordEncoder()) {
-            return passwordEncoder.isPasswordValid(encodedPassword, rawPassword, salt);
+            return passwordEncoder.isPasswordValid(encodedPassword, String.valueOf(rawPassword), salt);
         } else {
             return isPasswordValid(rawPassword, encodedPassword);
         }
@@ -409,13 +408,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Deprecated
     @Override
-    public boolean isPasswordValid(String rawPassword, String encodedPassword, Customer customer) {
+    public boolean isPasswordValid(char[] rawPassword, String encodedPassword, Customer customer) {
         return isPassValid(rawPassword, encodedPassword, getSalt(customer, rawPassword));
     }
 
     @Override
-    public boolean isPasswordValid(String rawPassword, String encodedPassword) {
-        return passwordEncoderNew.matches(rawPassword, encodedPassword);
+    public boolean isPasswordValid(char[] rawPassword, String encodedPassword) {
+        return passwordEncoderNew.matches(CharBuffer.wrap(rawPassword), encodedPassword);
     }
 
     @Override
@@ -506,8 +505,7 @@ public class CustomerServiceImpl implements CustomerService {
         checkCustomer(customer, response);
 
         if (! response.getHasErrors()) {        
-            String token = PasswordUtils.generateTemporaryPassword(getPasswordTokenLength());
-            token = token.toLowerCase();
+            char[] token = PasswordUtils.generateTemporaryPassword(getPasswordTokenLength());
 
             Object salt = getSalt(customer, token);
 
@@ -523,16 +521,28 @@ public class CustomerServiceImpl implements CustomerService {
             customerForgotPasswordSecurityTokenDao.saveToken(fpst);
 
             if (usingDeprecatedPasswordEncoder() && saltString != null) {
-                token = token + '-' + saltString;
+                char[] temp = new char[(token.length + saltString.length() + 1)];
+                int j = 0;
+                for(char c : token){
+                    temp[j] = c;
+                    j++;
+                }
+                temp[j] = '-';
+                j++;
+                for(char s : saltString.toCharArray()){
+                    temp[j] = s;
+                    j++;
+                }
+                token = temp;
             }
 
             HashMap<String, Object> vars = new HashMap<String, Object>();
             vars.put("token", token);
             if (!StringUtils.isEmpty(resetPasswordUrl)) {
                 if (resetPasswordUrl.contains("?")) {
-                    resetPasswordUrl=resetPasswordUrl+"&token="+token;
+                    resetPasswordUrl=resetPasswordUrl+"&token="+String.valueOf(token);
                 } else {
-                    resetPasswordUrl=resetPasswordUrl+"?token="+token;
+                    resetPasswordUrl=resetPasswordUrl+"?token="+String.valueOf(token);
                 }
             }
             vars.put("resetPasswordUrl", resetPasswordUrl); 
@@ -543,7 +553,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Deprecated
     @Override
-    public GenericResponse checkPasswordResetToken(String token) {
+    public GenericResponse checkPasswordResetToken(char[] token) {
         if (!usingDeprecatedPasswordEncoder()) {
             // We cannot proceed without a Customer when using the new PasswordEncoder
             throw new NoSuchBeanDefinitionException("This method requires the deprecated PasswordEncoder bean");
@@ -552,26 +562,27 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public GenericResponse checkPasswordResetToken(String token, Customer customer) {
+    public GenericResponse checkPasswordResetToken(char[] token, Customer customer) {
         GenericResponse response = new GenericResponse();
         checkPasswordResetToken(token, customer, response);
         return response;
     }
 
-    protected CustomerForgotPasswordSecurityToken checkPasswordResetToken(String token, Customer customer, GenericResponse response) {
-        if (StringUtils.isBlank(token)) {
+    protected CustomerForgotPasswordSecurityToken checkPasswordResetToken(char[] token, Customer customer, GenericResponse response) {
+        if (token.length > 0) {
             response.addErrorCode("invalidToken");
         }
 
-        String rawToken = token;
-        String salt = null;
+        char[] rawToken = token;
+        char[] salt = null;
 
         if (usingDeprecatedPasswordEncoder()) {
-            String[] tokens = token.split("-");
+            int splitIndex = ArrayUtils.indexOf(token,'-');
+            char[][] tokens = {Arrays.copyOfRange(token,0,splitIndex-1),Arrays.copyOfRange(token,splitIndex+1,token.length-1)};
             if (tokens.length > 2) {
                 response.addErrorCode("invalidToken");
             } else {
-                rawToken = tokens[0].toLowerCase();
+                rawToken = tokens[0];
                 if (tokens.length == 2) {
                     salt = tokens[1];
                 }
@@ -585,7 +596,7 @@ public class CustomerServiceImpl implements CustomerService {
                     // customer can only be null when supporting use of the legacy PasswordEncoder
                     response.addErrorCode("invalidCustomer");
                 } else {
-                    fpst = customerForgotPasswordSecurityTokenDao.readToken(passwordEncoder.encodePassword(rawToken, salt));
+                    fpst = customerForgotPasswordSecurityTokenDao.readToken(passwordEncoder.encodePassword(String.valueOf(rawToken), salt));
                 }
             } else {
                 List<CustomerForgotPasswordSecurityToken> fpstoks = customerForgotPasswordSecurityTokenDao.readUnusedTokensByCustomerId(customer.getId());
@@ -609,7 +620,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(TransactionUtils.DEFAULT_TRANSACTION_MANAGER)
-    public GenericResponse resetPasswordUsingToken(String username, String token, String password, String confirmPassword) {
+    public GenericResponse resetPasswordUsingToken(String username, char[] token, char[] password, char[] confirmPassword) {
         GenericResponse response = new GenericResponse();
         Customer customer = null;
         if (username != null) {
@@ -655,10 +666,10 @@ public class CustomerServiceImpl implements CustomerService {
         }
     }
 
-    protected void checkPassword(String password, String confirmPassword, GenericResponse response) {
-        if (StringUtils.isBlank(password) || StringUtils.isBlank(confirmPassword)) {
+    protected void checkPassword(char[] password, char[] confirmPassword, GenericResponse response) {
+        if (password.length > 0 || confirmPassword.length > 0) {
             response.addErrorCode("invalidPassword");
-        } else if (! password.equals(confirmPassword)) {
+        } else if (!Arrays.equals(password,confirmPassword)) {
             response.addErrorCode("passwordMismatch");
         }
     }

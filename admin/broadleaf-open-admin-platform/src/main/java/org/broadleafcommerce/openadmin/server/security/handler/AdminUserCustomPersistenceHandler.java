@@ -106,7 +106,7 @@ public class AdminUserCustomPersistenceHandler extends CustomPersistenceHandlerA
                 return errorEntity;
             }
             
-            adminInstance.setUnencodedPassword(adminInstance.getPassword());
+            adminInstance.setUnencodedPassword(adminInstance.getPassword().toCharArray());
             adminInstance.setPassword(null);
 
             adminInstance = adminSecurityService.saveAdminUser(adminInstance);
@@ -140,7 +140,7 @@ public class AdminUserCustomPersistenceHandler extends CustomPersistenceHandlerA
             Property passwordProperty = entity.getPMap().get("password");
             if (passwordProperty != null) {
                 if (StringUtils.isNotEmpty(passwordProperty.getValue())) {
-                    adminInstance.setUnencodedPassword(passwordProperty.getValue());
+                    adminInstance.setUnencodedPassword(passwordProperty.getValue().toCharArray());
                     adminInstance.setPassword(null);
                 } else {
                     adminInstance.setPassword(passwordBefore);

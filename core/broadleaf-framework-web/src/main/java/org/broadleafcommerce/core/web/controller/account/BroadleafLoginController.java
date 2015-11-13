@@ -228,7 +228,7 @@ public class BroadleafLoginController extends BroadleafAbstractController {
         if (BLCRequestUtils.isOKtoUseSession(new ServletWebRequest(request))) {
             username = (String) request.getSession(true).getAttribute("forgot_password_username");
         }
-        String token = request.getParameter("token");
+        char[] token = request.getParameter("token").toCharArray();
         resetPasswordForm.setToken(token);
         resetPasswordForm.setUsername(username);
         return resetPasswordForm;
