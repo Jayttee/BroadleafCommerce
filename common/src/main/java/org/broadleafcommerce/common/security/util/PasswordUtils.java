@@ -20,6 +20,8 @@
 package org.broadleafcommerce.common.security.util;
 
 
+import java.security.SecureRandom;
+
 public class PasswordUtils {
 
     public static final Character[] characters = {
@@ -30,8 +32,9 @@ public class PasswordUtils {
     public static String generateTemporaryPassword(int requiredLength) {
         int length = characters.length;
         StringBuffer sb = new StringBuffer(requiredLength);
+        SecureRandom sr = new SecureRandom();
         for (int j=0;j<requiredLength;j++) {
-            sb.append(characters[(int) Math.round(Math.floor(Math.random() * length))]);
+            sb.append(characters[sr.nextInt(characters.length)]);
         }
         
         return sb.toString();
