@@ -212,18 +212,26 @@ public class SiteMapServiceImpl implements SiteMapService {
             try {
                 String fileNameWithPath = FilenameUtils.normalize(fileWorkArea.getFilePathLocation() + File.separator + fileName);
 
-                FileInputStream fis = new FileInputStream(fileNameWithPath);
-                FileOutputStream fos = new FileOutputStream(fileNameWithPath + ENCODING_EXTENSION);
-                GZIPOutputStream gzipOS = new GZIPOutputStream(fos);
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = fis.read(buffer)) != -1) {
-                    gzipOS.write(buffer, 0, len);
+                FileInputStream fis = null;
+                FileOutputStream fos = null;
+                GZIPOutputStream gzipOS = null;
+                try {
+                    fis = new FileInputStream(fileNameWithPath);
+                    fos = new FileOutputStream(fileNameWithPath + ENCODING_EXTENSION);
+                    gzipOS = new GZIPOutputStream(fos);
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = fis.read(buffer)) != -1) {
+                        gzipOS.write(buffer, 0, len);
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
+                }finally {
+                    //close resources
+                    if(gzipOS != null) gzipOS.close();
+                    if(fos != null) fos.close();
+                    if(fis != null) fis.close();
                 }
-                //close resources
-                gzipOS.close();
-                fos.close();
-                fis.close();
 
                 File originalFile = new File(fileNameWithPath);
                 originalFile.delete();
