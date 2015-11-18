@@ -82,6 +82,7 @@ public class ImportProcessor {
         if (sources == null) {
             return null;
         }
+        BufferedWriter writer = null;
         try {
             DynamicResourceIterator resourceList = new DynamicResourceIterator();
             resourceList.addAll(Arrays.asList(sources));
@@ -107,7 +108,7 @@ public class ImportProcessor {
 
                     DOMSource source = new DOMSource(doc);
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(baos));
+                    writer = new BufferedWriter(new OutputStreamWriter(baos));
                     StreamResult result = new StreamResult(writer);
                     xmlTransformer.transform(source, result);
 
@@ -122,6 +123,14 @@ public class ImportProcessor {
             return resourceList.toArray(new ResourceInputStream[resourceList.size()]);
         } catch (Exception e) {
             throw new MergeException(e);
+        } finally {
+            if(writer != null){
+                try {
+                    writer.close();
+                }catch(Exception e){
+                    throw new MergeException(e);
+                }
+            }
         }
     }
 }

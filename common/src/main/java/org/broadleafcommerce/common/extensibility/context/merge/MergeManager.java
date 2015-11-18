@@ -235,6 +235,7 @@ public class MergeManager {
      * @throws org.broadleafcommerce.common.extensibility.context.merge.exceptions.MergeException
      */
     public ResourceInputStream merge(ResourceInputStream stream1, ResourceInputStream stream2) throws MergeException {
+        BufferedWriter writer = null;
         try {
             Document doc1 = builder.parse(stream1);
             Document doc2 = builder.parse(stream2);
@@ -262,7 +263,7 @@ public class MergeManager {
 
             DOMSource source = new DOMSource(doc1);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(baos, "UTF-8"));
+            writer = new BufferedWriter(new OutputStreamWriter(baos, "UTF-8"));
             StreamResult result = new StreamResult(writer);
             xmlTransformer.transform(source, result);
 
@@ -271,6 +272,14 @@ public class MergeManager {
             return new ResourceInputStream(new ByteArrayInputStream(itemArray), stream2.getName(), stream1.getNames());
         } catch (Exception e) {
             throw new MergeException(e);
+        }finally{
+            if(writer != null){
+                try {
+                    writer.close();
+                }catch(Exception e){
+                    throw new MergeException(e);
+                }
+            }
         }
     }
 
